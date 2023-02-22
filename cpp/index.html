@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WebSocket Client Example</title>
+  </head>
+  <body>
+    <h1>WebSocket Client Example</h1>
+    <p id="output">Waiting for messages...</p>
+    <button onclick="sort()">Click me to send a message "sort"</button>
+    <script>
+      var socket = new WebSocket("ws://localhost:18080/ws");
+      
+      socket.onopen = function(event) {
+        console.log("WebSocket connected");
+      };
+      
+      socket.onmessage = function(event) {
+        if(isJson(event.data)) {
+          var data = JSON.parse(event.data);
+          console.log(data); // should log [1, 2, 3, 4, 5]
+        }
+        else {
+          document.getElementById("output").innerHTML = "Message: " + event.data;
+        }
+        
+      };
+      
+      socket.onclose = function(event) {
+        console.log("WebSocket closed");
+      };
+
+      function sort() {
+        console.log("sort button clicked!");
+        socket.send("hello from js");
+      }
+
+      function isJson(str) {
+        try {
+          JSON.parse(str)
+        } catch (e) {
+          return false;
+        }
+        return true;
+      }
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,27 @@
+.container {
+  padding: 0 10px;
+  transform: rotate(180deg);
+  -moz-transform: rotate(180deg);
+  -webkit-transform: rotate(180deg);
+  -o-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+}
+
+.bar-item {
+  background: white;
+  width: 5vw;
+}
+
+.bar-item:hover {
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.bar-num {
+  padding: 10px 0;
+  transform: rotate(180deg);
+  -moz-transform: rotate(180deg);
+  -webkit-transform: rotate(180deg);
+  -o-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+}
