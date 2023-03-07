@@ -44,35 +44,36 @@ int main()
                    recv_doc.Parse(message.c_str());
 
                    // Get the array
-                   rapidjson::Value &a = recv_doc["num"];
-                   assert(a.IsArray());
+                   rapidjson::Value &a = recv_doc;
+                   assert(a.IsObject());
 
-                   for (rapidjson::SizeType i = 0; i < a.Size(); i++) // Uses SizeType instead of size_t
+                   for (rapidjson::SizeType i = 0; i < a["num"].Size(); i++) // Uses SizeType instead of size_t
                    {
                      rapidjson::SizeType min = i;
                      // printf("a[%d] = %d\n", i, a[i].GetInt());
-                     for (rapidjson::SizeType j = i + 1; j < a.Size(); j++)
+                     for (rapidjson::SizeType j = i + 1; j < a["num"].Size(); j++)
                      {
-                       if (a[j].GetInt() < a[min].GetInt())
+                       if (a["num"][j].GetInt() < a["num"][min].GetInt())
                          min = j;
                      }
                      // Swap the found minimum element
                      // with the first element
                      if (min != i)
                      {
-                       a[i].Swap(a[min]);
+                       a["num"][i].Swap(a["num"][min]);
                      }
+
+                     // Convert the JSON document to a string
+                     rapidjson::StringBuffer buffer;
+                     rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+                     recv_doc.Accept(writer);
+                     std::string json_str = buffer.GetString();
+                     conn.send_text(json_str);
                    }
 
                    // for (rapidjson::SizeType i = 0; i < a.Size(); i++)
                    //   printf("a[%d] = %d\n", i, a[i].GetInt());
-
-                   // Convert the JSON document to a string
-                   rapidjson::StringBuffer buffer;
-                   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-                   recv_doc["num"].Accept(writer);
-                   std::string json_str = buffer.GetString();
-                   conn.send_text(json_str); });
+                 });
 
   app.port(18080).run();
 

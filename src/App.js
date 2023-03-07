@@ -1,11 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './App.css';
 import Bar from './components/Bar.tsx'
+// import Queue from './classes/Queue'
 
 function App() {
   const [arr, setArr] = useState({num: [], selected: []});
   const [isPaused, setPause] = useState(false);
   const ws = useRef(null);
+  let fifo = useRef(null);
+
+  // Immutable queue for recieving messages
+  function push(arr, newEntry) {
+    return [...arr, newEntry];
+  }
+  function pop(arr) {
+    return arr.slice(0,-1);
+  }
 
   useEffect(() => {
     ws.current = new WebSocket("ws://localhost:18080/ws");
@@ -13,6 +23,9 @@ function App() {
     ws.current.onclose = () => console.log("WebSocket closed");
 
     const wsCurrent = ws.current;
+
+    // Initialize FIFO queue
+    fifo.current = [];
 
     return () => {
       wsCurrent.close();
@@ -26,9 +39,11 @@ function App() {
       if(isPaused) return;
       const message = JSON.parse(e.data);
       console.log("res: ", message);
+      fifo.current = push(fifo.current, message);
       setArr(message);
     }
   }, [isPaused]);
+
 
   return (
     <div className="App">
@@ -57,12 +72,16 @@ function App() {
             setArr({num: numArr, selected: selectedArr});
           }}>Submit</button>
           <button onClick={() => {
-            // let cmd = JSON.stringify("cmd")
-            // let msg = JSON.stringify(numArr);
-            // ws.current.send([cmd,msg]);
+            // Clear the queue for new incoming messages
+            fifo.current = [];
+
+            // Message to be sent thru the websocket to the server
             let msg = JSON.stringify(arr);
             ws.current.send(msg);
           }}>Run</button>
+          <button onClick={() => {
+            console.log(fifo)
+          }}>Check queue</button>
         </div>
       </header>
     </div>
