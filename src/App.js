@@ -1,20 +1,35 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './App.css';
 import Bar from './components/Bar.tsx'
-// import Queue from './classes/Queue'
 
 function App() {
-  const [arr, setArr] = useState({num: [], selected: []});
+  const [arr, setArr] = useState({num: [], index_i: [], index_j: [], min: [], finished: false});
   const [isPaused, setPause] = useState(false);
   const ws = useRef(null);
   let fifo = useRef(null);
 
   // Immutable queue for recieving messages
+  // Return array
   function push(arr, newEntry) {
     return [...arr, newEntry];
   }
+  // Return array
   function pop(arr) {
-    return arr.slice(0,-1);
+    return arr.slice(1);
+  }
+
+  // Timer function in milliseconds (1s = 1000ms)
+  function timeout(delay) {
+    return new Promise(res => setTimeout(res, delay));
+  }
+
+  async function animateSorting() {
+    // While the queue is not empty
+    while(fifo.current.length > 0) {
+      setArr(fifo.current[0]);
+      fifo.current = pop(fifo.current);
+      await timeout(100);
+    }
   }
 
   useEffect(() => {
@@ -36,11 +51,28 @@ function App() {
     if(!ws.current) return;
 
     ws.current.onmessage = (e) => {
+      // Return if websocket is paused
       if(isPaused) return;
+
+      // Parse the message into readable data
       const message = JSON.parse(e.data);
-      console.log("res: ", message);
-      fifo.current = push(fifo.current, message);
-      setArr(message);
+
+      // Check if the operation is finished
+      // If not finished, push the message into a queue
+      if(!message.finished)
+      {
+        // console.log("res: ", message);
+        fifo.current = push(fifo.current, message);
+        // console.log(fifo.current.length)
+        // setArr(message);
+      }
+      // Else if it is finished, start frontend operation
+      else
+      {
+        console.log(fifo.current);
+        animateSorting();
+      }
+
     }
   }, [isPaused]);
 
@@ -50,7 +82,7 @@ function App() {
       <header className="App-header">
         <div className='bar-container'>
           {arr.num.map(function(num,iter) {
-            return <Bar num={num} selected={arr.selected[iter]} key={iter} />
+            return <Bar num={num} index_i={arr.index_i[iter]} index_j={arr.index_j[iter]} min={arr.min[iter]} key={iter} />
           })}
         </div>
         <div>
@@ -67,9 +99,11 @@ function App() {
             let numArr = text.split(",").map(Number);
 
             // Uses the length of the number array and fills every cell with false
-            let selectedArr = new Array(numArr.length).fill(false);
+            let indexIArr = new Array(numArr.length).fill(false);
+            let indexJArr = new Array(numArr.length).fill(false);
+            let minArr =new Array(numArr.length).fill(false);
 
-            setArr({num: numArr, selected: selectedArr});
+            setArr({num: numArr, index_i: indexIArr, index_j: indexJArr, min: minArr, finished: false});
           }}>Submit</button>
           <button onClick={() => {
             // Clear the queue for new incoming messages

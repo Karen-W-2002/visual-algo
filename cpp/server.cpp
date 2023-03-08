@@ -35,7 +35,6 @@ int main()
                { conn.send_text("Websocket server closed!"); })
       .onmessage([&](crow::websocket::connection &conn, const std::string &message, bool is_binary)
                  {
-                   // conn.send_text("You said: " + message);
                    std::cout << "message rec: " << std::endl
                              << message << std::endl;
 
@@ -50,11 +49,27 @@ int main()
                    for (rapidjson::SizeType i = 0; i < a["num"].Size(); i++) // Uses SizeType instead of size_t
                    {
                      rapidjson::SizeType min = i;
+
+                     // FIXME: testing for index_i, min
+                     a["index_i"][i] = true;
+                     a["min"][i] = true;
+
                      // printf("a[%d] = %d\n", i, a[i].GetInt());
                      for (rapidjson::SizeType j = i + 1; j < a["num"].Size(); j++)
                      {
                        if (a["num"][j].GetInt() < a["num"][min].GetInt())
+                       {
+                         a["min"][min] = false;
                          min = j;
+                         a["min"][min] = true;
+                       }
+
+                       // Convert the JSON document to a string
+                       rapidjson::StringBuffer buffer;
+                       rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+                       recv_doc.Accept(writer);
+                       std::string json_str = buffer.GetString();
+                       conn.send_text(json_str);
                      }
                      // Swap the found minimum element
                      // with the first element
@@ -62,6 +77,10 @@ int main()
                      {
                        a["num"][i].Swap(a["num"][min]);
                      }
+
+                     // FIXME:
+                     a["index_i"][i] = false;
+                     a["min"][min] = false;
 
                      // Convert the JSON document to a string
                      rapidjson::StringBuffer buffer;
@@ -71,6 +90,15 @@ int main()
                      conn.send_text(json_str);
                    }
 
+                   rapidjson::Document doc;
+                   doc.SetObject();
+                   doc.AddMember("finished", "true", doc.GetAllocator());
+
+                   rapidjson::StringBuffer buffer;
+                   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+                   doc.Accept(writer);
+                   std::string json_str = buffer.GetString();
+                   conn.send_text(json_str);
                    // for (rapidjson::SizeType i = 0; i < a.Size(); i++)
                    //   printf("a[%d] = %d\n", i, a[i].GetInt());
                  });
