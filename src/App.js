@@ -101,7 +101,7 @@ function App() {
             // Uses the length of the number array and fills every cell with false
             let indexIArr = new Array(numArr.length).fill(false);
             let indexJArr = new Array(numArr.length).fill(false);
-            let minArr =new Array(numArr.length).fill(false);
+            let minArr = new Array(numArr.length).fill(false);
 
             setArr({num: numArr, index_i: indexIArr, index_j: indexJArr, min: minArr, finished: false});
           }}>Submit</button>
